@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: generic-db
+    environment:
+      POSTGRES_DB: generic_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d generic_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: generic-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: generic-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: generic-api-gateway
+    environment:
+      NODE_ENV: production
+      SERVICE_NAME: api-gateway
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/generic_db
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/health').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker-event:
+    build:
+      context: ./services/worker-event
+      dockerfile: Dockerfile
+    container_name: generic-worker-event
+    environment:
+      NODE_ENV: production
+      SERVICE_NAME: worker-event
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      GENERIC_QUEUE_NAME: GENERIC_QUEUE
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  frontend-app:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    container_name: generic-frontend-app
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_BASE_URL: http://api-gateway:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

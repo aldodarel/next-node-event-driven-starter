@@ -1,0 +1,105 @@
+openapi: 3.0.3
+info:
+  title: Generic Event-Driven Starter API
+  version: 0.1.0
+  description: >
+    Draft spesifikasi OpenAPI untuk API gateway generik yang menjadi pintu masuk
+    komunikasi sinkron pada boilerplate event-driven.
+servers:
+  - url: http://localhost:3001
+    description: Local API Gateway
+paths:
+  /health:
+    get:
+      summary: Ambil status kesehatan service
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service dalam keadaan sehat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: api-gateway
+                  timestamp:
+                    type: string
+                    format: date-time
+  /api/items:
+    get:
+      summary: Ambil daftar item generik
+      tags:
+        - Items
+      responses:
+        "200":
+          description: Daftar item berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GenericItem"
+                  total:
+                    type: integer
+                    example: 1
+    post:
+      summary: Buat item generik baru
+      tags:
+        - Items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGenericItemRequest"
+      responses:
+        "201":
+          description: Item generik berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Generic item accepted
+                  data:
+                    $ref: "#/components/schemas/GenericItem"
+components:
+  schemas:
+    GenericItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: generic-item
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+    CreateGenericItemRequest:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          example: generic-item-collection
+        name:
+          type: string
+          example: generic-item
+        metadata:
+          type: object
+          additionalProperties: true

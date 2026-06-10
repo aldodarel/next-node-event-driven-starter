@@ -1,0 +1,17 @@
+{
+  "name": "next-node-event-driven-starter",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "npm run lint --workspace frontend-app && npm run lint --workspace api-gateway && npm run lint --workspace worker-event",
+    "test": "npm run test --workspace frontend-app && npm run test --workspace api-gateway && npm run test --workspace worker-event"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "workspaces": [
+    "frontend-app",
+    "services/*"
+  ],
+  "private": true
+}

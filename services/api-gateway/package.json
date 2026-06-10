@@ -1,0 +1,22 @@
+{
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "node --check src/index.js && node --check src/controllers/genericController.js && node --check src/routes/genericRoutes.js && node --check src/services/genericService.js && node --check src/utils/logger.js && node --check src/utils/lock.js && node --check src/middlewares/errorHandler.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Generic API gateway boilerplate for an event-driven architecture",
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.16.3",
+    "pino": "^9.7.0",
+    "pino-http": "^10.5.0",
+    "redis": "^4.7.1"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "worker-event",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "node --check src/index.js && node --check src/consumers/genericConsumer.js && node --check src/processors/genericProcessor.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Generic worker boilerplate for consuming events from RabbitMQ",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "pino": "^9.7.0"
+  }
+}
